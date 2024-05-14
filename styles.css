@@ -1,0 +1,58 @@
+/* Reset some default styles */
+html, body, h1, h2, h3, p {
+  margin: 0px;
+  padding: 0px;
+}
+
+/* Ensuring full-screen height for the landing section */
+.landing-section {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('background_image.jpg'); /* Replace 'your_background_image.jpg' with the path to your image */
+  background-size: cover;
+  background-position: center;
+  position: relative; /* To position the button */
+}
+
+/* Styling for the content inside landing section */
+.landing-content {
+  text-align: center;
+  color: rgba(255, 255, 244, 0.9); /* Sandy white color with some transparency */
+  margin-bottom: 50px; /* Increased space between title and button */
+  padding: 50px;
+  margin: 50px;
+  font-size: 36px; /* Adjust the font size as per your preference */
+  font-family: "Abel", sans-serif;
+}
+
+/* Button style */
+.btn {
+  display: inline-block;
+  padding: 15px 40px; /* Increased padding for larger button */
+  color: #fff;
+  text-decoration: none;
+  border: 2px solid #fff; /* Solid border */
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  backdrop-filter: blur(1px); /* Blurry background */
+  margin-top: 50px; /* Increased space between button and previous element */
+}
+
+.btn:hover {
+  backdrop-filter: blur(5px); /* Blurry background */
+}
+
+/* Styling for about us section */
+.about-us-section {
+  padding: 50px 0;
+  text-align: center;
+  background-color: #fff; /* Set your desired background color */
+}
+
+/* Styling for about us content */
+.about-us-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
