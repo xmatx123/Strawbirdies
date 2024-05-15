@@ -10,7 +10,7 @@ html, body, h1, h2, h3, p {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: url('background_image.JPG'); /* Replace 'your_background_image.jpg' with the path to your image */
+  background-image: url('background_image_1.jpg'); /* Replace 'your_background_image.jpg' with the path to your image */
   background-size: cover;
   background-position: center;
   position: relative; /* To position the button */
