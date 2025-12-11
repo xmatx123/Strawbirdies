@@ -1,0 +1,109 @@
+/* Reset some default styles */
+html, body, h1, h2, h3, p {
+  margin: 0px;
+  padding: 0px;
+}
+
+/* Ensuring full-screen height for the landing section */
+.landing-section {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('background_image_1.jpg'); /* Replace 'your_background_image.jpg' with the path to your image */
+  background-size: cover;
+  background-position: center;
+  position: relative; /* To position the button */
+}
+
+/* Styling for the content inside landing section */
+.landing-content {
+  text-align: center;
+  color: rgba(255, 255, 244, 0.9); /* Sandy white color with some transparency */
+  margin-bottom: 50px; /* Increased space between title and button */
+  padding: 50px;
+  margin: 50px;
+  font-size: 36px; /* Adjust the font size as per your preference */
+  font-family: "Abel", sans-serif;
+}
+
+/* Button style */
+.btn {
+  display: inline-block;
+  padding: 15px 40px; /* Increased padding for larger button */
+  color: #fff;
+  text-decoration: none;
+  border: 2px solid #fff; /* Solid border */
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  backdrop-filter: blur(1px); /* Blurry background */
+  margin-top: 50px; /* Increased space between button and previous element */
+}
+
+.btn:hover {
+  backdrop-filter: blur(5px); /* Blurry background */
+}
+
+/* Styling for about us section */
+.about-us-section {
+  padding: 50px 0;
+  text-align: center;
+  background-color: rgba(255, 255, 244, 0.9); /* Set your desired background color */
+}
+
+/* Styling for about us content */
+.about-us-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Styling for about us text */
+.about-us-text {
+  flex: 0 0 70%; /* Adjusted flex property to specify the desired width */
+  text-align: left;
+  padding-right: 20px;
+}
+
+/* Styling for about us image */
+.about-us-image {
+  flex: 0 0 25%; /* Adjusted flex property to specify the desired width */
+  text-align: center;
+}
+
+
+.about-us-image img {
+  max-width: 100%;
+  border-radius: 100%; /* Make the image round */
+}
+.about-us-text p {
+  margin-bottom: 10px; /* Adjust the margin bottom as needed */
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+  .about-us-text,
+  .about-us-image {
+      width: 100%;
+  }
+
+  .about-us-image {
+      margin-top: 20px; /* Add some space between text and image */
+  }
+}
+
+/* Footer styles */
+.footer {
+  background-color: #320000; /* Dark red background */
+  color: #fff; /* White text color */
+  text-align: center;
+  padding: 20px 0; /* Add some padding */
+}
+
+.footer a {
+  color: #fff; /* White text color for links */
+  text-decoration: underline; /* Add underline to links */
+}
