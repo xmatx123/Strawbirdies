@@ -1,9 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, Signal, Truck, ShieldAlert, Mountain } from 'lucide-react';
+import ImageCarousel from './ImageCarousel';
 
 const SpotCard = ({ spot, onClose, onNavigate, onViewDetails }) => {
     if (!spot) return null;
+
+    // Normalize images: favor spot.images array, fallback to spot.image string wrapped in array
+    const images = spot.images && spot.images.length > 0
+        ? spot.images
+        : (spot.image ? [spot.image] : []);
 
     return (
         <motion.div
@@ -25,9 +31,7 @@ const SpotCard = ({ spot, onClose, onNavigate, onViewDetails }) => {
                 flexDirection: 'column'
             }}
         >
-            {spot.image && (
-                <img src={spot.image} alt="Spot" style={{ width: '100%', height: '160px', objectFit: 'cover' }} />
-            )}
+            <ImageCarousel images={images} height="160px" />
 
             <div style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
