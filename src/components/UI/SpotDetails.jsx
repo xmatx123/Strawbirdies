@@ -4,11 +4,15 @@ import { Star, Navigation, X, Wifi, Signal, Droplets, Bath, MessageSquare, Send 
 import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
+import ImageCarousel from './ImageCarousel';
+import { updateDoc, doc, arrayUnion } from 'firebase/firestore';
+
 const SpotDetails = ({ spot, onClose, onNavigate }) => {
     const [reviews, setReviews] = useState([]);
     const [newReview, setNewReview] = useState('');
     const [rating, setRating] = useState(5);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Fetch Reviews
     useEffect(() => {
@@ -30,7 +34,7 @@ const SpotDetails = ({ spot, onClose, onNavigate }) => {
                 text: newReview,
                 rating,
                 createdAt: new Date().toISOString(),
-                userName: "Traveler" // Anonymous for now
+                userName: "Traveler"
             });
             setNewReview('');
         } catch (error) {
@@ -41,7 +45,64 @@ const SpotDetails = ({ spot, onClose, onNavigate }) => {
         }
     };
 
+    const handlePhotoUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            // Compress Image Logic (same as AddSpotForm, ideally refactored to utility)
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = async () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_WIDTH = 800;
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const base64String = canvas.toDataURL('image/jpeg', 0.7);
+
+                    // Update Firestore
+                    // If 'images' array doesn't exist yet, we might need to initialize it with the existing 'image' first?
+                    // Actually arrayUnion is smart, but if the field is missing it creates it.
+                    // However, we want to respect the OLD image too.
+
+                    // Simple migration on write:
+                    // If spot.images missing, we should probably add spot.image AND the new one?
+                    // For now, let's just append. The Carousel logic handles the display mix.
+
+                    const spotRef = doc(db, "spots", spot.id);
+                    await updateDoc(spotRef, {
+                        images: arrayUnion(base64String)
+                    });
+
+                    alert("Photo added!");
+                    setIsUploading(false);
+                };
+            };
+        } catch (error) {
+            console.error("Error uploading photo:", error);
+            alert("Failed to upload photo.");
+            setIsUploading(false);
+        }
+    };
+
     if (!spot) return null;
+
+    // Normalize images
+    const images = spot.images && spot.images.length > 0
+        ? spot.images
+        : (spot.image ? [spot.image] : []);
 
     return (
         <div style={{
@@ -72,18 +133,16 @@ const SpotDetails = ({ spot, onClose, onNavigate }) => {
             >
                 {/* Header Image */}
                 <div style={{ height: '250px', position: 'relative' }}>
-                    <img
-                        src={spot.image || "https://images.unsplash.com/photo-1533873984035-25970ab07461?auto=format&fit=crop&q=80&w=800"}
-                        alt={spot.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
+                    <ImageCarousel images={images} height="100%" />
+
                     <button
                         onClick={onClose}
                         style={{
                             position: 'absolute', top: 16, right: 16,
                             background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white',
                             borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 20
                         }}
                     >
                         <X size={24} />
@@ -93,7 +152,8 @@ const SpotDetails = ({ spot, onClose, onNavigate }) => {
                     <div style={{
                         position: 'absolute', bottom: 0, left: 0, right: 0,
                         background: 'linear-gradient(transparent, rgba(0,0,0,0.9))',
-                        padding: '20px'
+                        padding: '20px',
+                        pointerEvents: 'none' // Click through to carousel controls if near bottom
                     }}>
                         <h1 style={{ margin: 0, fontSize: '2rem' }}>{spot.name}</h1>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', color: '#fbbf24' }}>
@@ -112,10 +172,17 @@ const SpotDetails = ({ spot, onClose, onNavigate }) => {
                         <button className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px' }} onClick={onNavigate}>
                             <Navigation size={18} /> Navigate
                         </button>
-                        {/* Placeholder for "Add Photo" */}
-                        <button className="btn-primary" disabled style={{ flex: 1, background: 'rgba(255,255,255,0.1)', opacity: 0.5 }}>
-                            Add Photo (Coming Soon)
-                        </button>
+
+                        <label className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px', cursor: 'pointer', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                            {isUploading ? (
+                                <span>Uploading...</span>
+                            ) : (
+                                <>
+                                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
+                                    <span>Add Photo</span>
+                                </>
+                            )}
+                        </label>
                     </div>
 
                     {/* Description */}

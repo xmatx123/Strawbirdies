@@ -151,13 +151,19 @@ function App() {
   };
 
   const handleAddSpot = async (data) => {
+    // Legacy support: Ensure 'image' (primary) is set from 'images[0]' if available
+    const primaryImage = (data.images && data.images.length > 0)
+      ? data.images[0]
+      : "https://images.unsplash.com/photo-1533873984035-25970ab07461?auto=format&fit=crop&q=80&w=800";
+
     const newSpot = {
       ...data,
       rating: 5,
       lastVerified: new Date().toISOString(),
       location: data.location,
       description: data.description,
-      image: data.image || "https://images.unsplash.com/photo-1533873984035-25970ab07461?auto=format&fit=crop&q=80&w=800"
+      image: primaryImage,
+      images: data.images || [] // Store array
     };
 
     // Optimistic UI update (optional, but Firestore is fast enough usually)

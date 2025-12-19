@@ -6,11 +6,11 @@ const AddSpotForm = ({ location, onClose, onSubmit }) => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        image: null,
-        amenities: {} // { wifi: true, etc }
+        images: [], // Changed from single image to array
+        amenities: {}
     });
 
-    // Helper: Resize and Convert to Base64
+    // Helper: Resize and Convert to Base64 (Same logic, reusable)
     const processImage = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -18,7 +18,7 @@ const AddSpotForm = ({ location, onClose, onSubmit }) => {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; // Limit size for Firestore (max 1MB doc size)
+                    const MAX_WIDTH = 800;
                     const scale = MAX_WIDTH / img.width;
 
                     if (scale < 1) {
@@ -31,7 +31,6 @@ const AddSpotForm = ({ location, onClose, onSubmit }) => {
 
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    // Compress to JPEG at 0.7 quality
                     resolve(canvas.toDataURL('image/jpeg', 0.7));
                 };
                 img.onerror = reject;
@@ -43,16 +42,19 @@ const AddSpotForm = ({ location, onClose, onSubmit }) => {
     };
 
     const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
 
         setIsProcessing(true);
         try {
-            const base64String = await processImage(file);
-            setFormData(prev => ({ ...prev, image: base64String }));
+            const processedImages = await Promise.all(files.map(file => processImage(file)));
+            setFormData(prev => ({
+                ...prev,
+                images: [...prev.images, ...processedImages]
+            }));
         } catch (error) {
-            console.error("Error processing image", error);
-            alert("Could not process image. Try a smaller one.");
+            console.error("Error processing images", error);
+            alert("Could not process some images.");
         } finally {
             setIsProcessing(false);
         }
@@ -60,7 +62,6 @@ const AddSpotForm = ({ location, onClose, onSubmit }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Submit directly - data is already in formData.image
         onSubmit({
             ...formData,
             location
@@ -78,7 +79,9 @@ const AddSpotForm = ({ location, onClose, onSubmit }) => {
             padding: '24px',
             width: '90%',
             maxWidth: '400px',
-            color: 'white'
+            color: 'white',
+            maxHeight: '90vh',
+            overflowY: 'auto'
         }}>
             <h2 style={{ marginTop: 0 }}>Add a New Spot</h2>
 
@@ -140,16 +143,25 @@ const AddSpotForm = ({ location, onClose, onSubmit }) => {
                 </div>
 
                 <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px' }}>Upload Photo</label>
+                    <label style={{ display: 'block', marginBottom: '8px' }}>Photos</label>
                     <input
                         type="file"
                         accept="image/*"
+                        multiple // Allow multiple files
                         className="glass-panel"
                         style={{ width: '100%', padding: '8px', color: 'white' }}
                         onChange={handleFileChange}
                     />
-                    {isProcessing && <small style={{ color: '#ccc', display: 'block', marginTop: '4px' }}>Processing image...</small>}
-                    {formData.image && <small style={{ color: 'lightgreen', display: 'block', marginTop: '4px' }}>Image ready!</small>}
+                    {isProcessing && <small style={{ color: '#ccc', display: 'block', marginTop: '4px' }}>Processing images...</small>}
+
+                    {/* Preview Images */}
+                    {formData.images.length > 0 && (
+                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginTop: '8px', paddingBottom: '4px' }}>
+                            {formData.images.map((img, idx) => (
+                                <img key={idx} src={img} alt={`Preview ${idx}`} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
