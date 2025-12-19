@@ -38,13 +38,13 @@ const RecenterMap = ({ location }) => {
     const map = useMap();
     useEffect(() => {
         if (location) {
-            map.flyTo([location.lat, location.lng], 10);
+            map.flyTo([location.lat, location.lng], 12); // Slightly closer zoom for focus
         }
     }, [location, map]);
     return null;
 };
 
-function MapContainer({ markers = [], onMapClick, onMarkerClick, userLocation }) {
+function MapContainer({ markers = [], onMapClick, onMarkerClick, centerLocation }) {
 
     // Component to handle map clicks
     const MapEvents = () => {
@@ -59,13 +59,13 @@ function MapContainer({ markers = [], onMapClick, onMarkerClick, userLocation })
 
     return (
         <LeafletMap
-            center={userLocation ? [userLocation.lat, userLocation.lng] : defaultCenter}
+            center={defaultCenter}
             zoom={10}
             style={mapContainerStyle}
             zoomControl={false} // Custom zoom control or none for clean look
             attributionControl={false} // Clean look (add manually in footer if needed)
         >
-            <RecenterMap location={userLocation} />
+            <RecenterMap location={centerLocation} />
             {/* Dark Matter Tiles (Free) */}
             <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"

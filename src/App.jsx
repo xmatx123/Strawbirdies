@@ -39,6 +39,7 @@ function App() {
   const [newSpotLocation, setNewSpotLocation] = useState(null);
 
   const [userLocation, setUserLocation] = useState(null);
+  const [mapCenter, setMapCenter] = useState(null);
   const [locationError, setLocationError] = useState(null);
 
   // Firestore Sync
@@ -65,10 +66,12 @@ function App() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const loc = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          });
+          };
+          setUserLocation(loc);
+          setMapCenter(loc); // Initial center
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -142,6 +145,9 @@ function App() {
   const handleMarkerClick = (spot) => {
     setSelectedSpot(spot);
     setIsAddingSpot(false);
+    if (spot.location) {
+      setMapCenter(spot.location);
+    }
   };
 
   const handleAddSpot = async (data) => {
@@ -177,7 +183,7 @@ function App() {
 
       <MapContainer
         markers={filteredSpots}
-        userLocation={userLocation}
+        centerLocation={mapCenter}
         onMapClick={handleMapClick}
         onMarkerClick={handleMarkerClick}
       />
