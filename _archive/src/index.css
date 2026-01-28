@@ -1,0 +1,77 @@
+@import 'leaflet/dist/leaflet.css';
+
+:root {
+  /* Premium Palette */
+  --color-bg-main: #0f172a;
+  /* Slate 900 */
+  --color-bg-card: rgba(30, 41, 59, 0.7);
+  /* Slate 800 with opacity */
+  --color-text-primary: #f8fafc;
+  /* Slate 50 */
+  --color-text-secondary: #94a3b8;
+  /* Slate 400 */
+
+  --color-accent: #10b981;
+  /* Emerald 500 (Free Camping) */
+  --color-accent-water: #3b82f6;
+  /* Blue 500 (Water) */
+  --color-accent-closed: #64748b;
+  /* Slate 500 (Closed) */
+
+  --color-rating: #f59e0b;
+  /* Amber 500 */
+
+  --backdrop-blur: 12px;
+  --border-radius: 16px;
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg-main);
+  color: var(--color-text-primary);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  /* App-like feel */
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Utilities */
+.glass-panel {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(var(--backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-primary {
+  background: var(--color-text-primary);
+  color: var(--color-bg-main);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 99px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: tranform 0.2s, opacity 0.2s;
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}

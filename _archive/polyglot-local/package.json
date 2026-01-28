@@ -1,0 +1,24 @@
+{
+    "name": "polyglot-local",
+    "version": "1.0.0",
+    "description": "Zero-UI Audio Prototype for Language Learning",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "keywords": [
+        "gemini",
+        "audio",
+        "language-learning",
+        "cli"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "dotenv": "^16.3.1",
+        "node-record-lpcm16": "^1.0.1",
+        "pump": "^3.0.0",
+        "speaker": "^0.5.4",
+        "ws": "^8.16.0"
+    }
+}
