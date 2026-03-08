@@ -6,7 +6,7 @@ import './index.css';
 
 function App() {
   return (
-    <BrowserRouter basename="/strawbirdies">
+    <BrowserRouter basename="/">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/editor" element={<Editor />} />
