@@ -1,22 +1,18 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Body: strawberry-red teardrop -->
-  <ellipse cx="15" cy="20" rx="9" ry="10" fill="#E8453C"/>
-  <!-- Upper body rounder part -->
-  <ellipse cx="15" cy="17" rx="10" ry="8" fill="#E8453C"/>
-  <!-- Wings: slightly darker red on both sides -->
-  <ellipse cx="6" cy="18" rx="4" ry="3" fill="#C73530" rx="4" ry="3" transform="rotate(-20 6 18)"/>
-  <ellipse cx="24" cy="18" rx="4" ry="3" fill="#C73530" transform="rotate(20 24 18)"/>
-  <!-- Green leaf/stem at top -->
-  <path d="M12 9 Q15 4 18 9" stroke="#2D6A4F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-  <line x1="15" y1="9" x2="15" y2="12" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round"/>
-  <!-- Left eye: white sclera -->
-  <ellipse cx="12" cy="17" rx="1.8" ry="1.8" fill="white"/>
-  <!-- Right eye: white sclera -->
-  <ellipse cx="18" cy="17" rx="1.8" ry="1.8" fill="white"/>
-  <!-- Left pupil -->
-  <circle cx="12.5" cy="17" r="0.8" fill="#1A0A08"/>
-  <!-- Right pupil -->
-  <circle cx="18.5" cy="17" r="0.8" fill="#1A0A08"/>
-  <!-- Beak: orange triangle pointing right -->
-  <polygon points="21,19 24,20.5 21,22" fill="#FF8C00"/>
+  <!-- Strawberry-red rounded square background -->
+  <rect width="32" height="32" rx="7" fill="#E8453C"/>
+
+  <!-- Bird body: clean white ellipse -->
+  <ellipse cx="14" cy="21" rx="9" ry="8" fill="white"/>
+
+  <!-- Green strawberry leaf + stem -->
+  <path d="M11 12 Q14 7 17 12" fill="#2D6A4F"/>
+  <line x1="14" y1="12" x2="14" y2="16" stroke="#2D6A4F" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Eyes -->
+  <circle cx="11.5" cy="20" r="1.5" fill="#1A0A08"/>
+  <circle cx="16.5" cy="20" r="1.5" fill="#1A0A08"/>
+
+  <!-- Beak: right-pointing orange triangle -->
+  <polygon points="20,20 24,21.5 20,23" fill="#FF8C00"/>
 </svg>
