@@ -72,6 +72,7 @@ const PageEditorView = ({
   const [drawStart, setDrawStart] = useState(null);
   const [currentPoints, setCurrentPoints] = useState([]);
   const [previewRect, setPreviewRect] = useState(null);
+  const [drawEnd, setDrawEnd] = useState(null);
 
   // Render the current page
   useEffect(() => {
@@ -181,6 +182,8 @@ const PageEditorView = ({
     if (activeTool === 'draw') {
       if (drawingTool === 'freehand') {
         setCurrentPoints(prev => [...prev, { x, y }]);
+      } else if (drawingTool === 'line' || drawingTool === 'arrow') {
+        setDrawEnd({ x, y });
       } else {
         setPreviewRect({
           x: Math.min(drawStart.x, x),
@@ -264,6 +267,7 @@ const PageEditorView = ({
     setDrawStart(null);
     setCurrentPoints([]);
     setPreviewRect(null);
+    setDrawEnd(null);
   }, [isDrawing, activeTool, drawStart, getCanvasCoords, activePage, currentPoints, onAddHighlight, onAddRedaction, onAddDrawing, drawingTool, activeColor, activeLineWidth, highlightColor]);
 
   // Filter items for current page
@@ -422,8 +426,8 @@ const PageEditorView = ({
           {isDrawing && previewRect && activeTool === 'draw' && drawingTool === 'circle' && (
             <ellipse cx={previewRect.x + previewRect.width / 2} cy={previewRect.y + previewRect.height / 2} rx={previewRect.width / 2} ry={previewRect.height / 2} stroke={activeColor} strokeWidth={activeLineWidth} fill="none" />
           )}
-          {isDrawing && drawStart && activeTool === 'draw' && (drawingTool === 'line' || drawingTool === 'arrow') && previewRect && (
-            <line x1={drawStart.x} y1={drawStart.y} x2={drawStart.x + (previewRect.x > drawStart.x ? previewRect.width : -previewRect.width)} y2={drawStart.y + (previewRect.y > drawStart.y ? previewRect.height : -previewRect.height)} stroke={activeColor} strokeWidth={activeLineWidth} />
+          {isDrawing && drawStart && drawEnd && activeTool === 'draw' && (drawingTool === 'line' || drawingTool === 'arrow') && (
+            <line x1={drawStart.x} y1={drawStart.y} x2={drawEnd.x} y2={drawEnd.y} stroke={activeColor} strokeWidth={activeLineWidth} />
           )}
         </svg>
 
