@@ -1,38 +1,83 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Use the bundled worker from the installed package (Vite resolves this correctly)
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url
+).href;
 
-const PDFPageRenderer = ({ pdfFile, pageNumber, scale = 0.3, onSelect, isSelected, isDeleting }) => {
+/**
+ * Renders a single PDF page onto a canvas.
+ * Accepts either a pdfjsDoc (PDFDocumentProxy) or a URL string for pdfFile.
+ * Prefer passing pdfjsDoc to avoid re-loading the PDF on every render.
+ */
+const PDFPageRenderer = ({
+  pdfjsDoc,
+  pdfFile,
+  pageNumber, // 1-based
+  scale = 0.3,
+  onSelect,
+  isSelected,
+  isDeleting,
+}) => {
   const canvasRef = useRef(null);
+  const renderTaskRef = useRef(null);
 
   useEffect(() => {
-    if (!pdfFile) return;
+    const source = pdfjsDoc || pdfFile;
+    if (!source) return;
+
+    let cancelled = false;
 
     const renderPage = async () => {
       try {
-        const loadingTask = pdfjsLib.getDocument(pdfFile);
-        const pdf = await loadingTask.promise;
-        const page = await pdf.getPage(pageNumber);
-        
+        // Cancel any previous render task
+        if (renderTaskRef.current) {
+          renderTaskRef.current.cancel();
+          renderTaskRef.current = null;
+        }
+
+        let doc = pdfjsDoc;
+        if (!doc) {
+          doc = await pdfjsLib.getDocument(pdfFile).promise;
+        }
+        if (cancelled) return;
+
+        const page = await doc.getPage(pageNumber);
+        if (cancelled) return;
+
         const canvas = canvasRef.current;
+        if (!canvas) return;
+
         const context = canvas.getContext('2d');
         const viewport = page.getViewport({ scale });
-        
+
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        await page.render({
-          canvasContext: context,
-          viewport: viewport,
-        }).promise;
+        const renderTask = page.render({ canvasContext: context, viewport });
+        renderTaskRef.current = renderTask;
+
+        await renderTask.promise;
+        renderTaskRef.current = null;
       } catch (error) {
-        console.error('Error rendering page:', error);
+        if (error?.name !== 'RenderingCancelledException') {
+          console.error('Error rendering page:', error);
+        }
       }
     };
 
     renderPage();
-  }, [pdfFile, pageNumber, scale]);
+
+    return () => {
+      cancelled = true;
+      if (renderTaskRef.current) {
+        renderTaskRef.current.cancel();
+        renderTaskRef.current = null;
+      }
+    };
+  }, [pdfjsDoc, pdfFile, pageNumber, scale]);
 
   return (
     <div
@@ -40,7 +85,7 @@ const PDFPageRenderer = ({ pdfFile, pageNumber, scale = 0.3, onSelect, isSelecte
       onClick={onSelect}
     >
       <canvas ref={canvasRef} />
-      <div className="page-number">{pageNumber + 1}</div>
+      <div className="page-number">{pageNumber}</div>
     </div>
   );
 };
