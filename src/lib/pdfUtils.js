@@ -125,6 +125,59 @@ const hexToRgb = (hex) => {
   return pdfRgb(r, g, b);
 };
 
+// ─── Burn text edits into the PDF (edit existing text) ────────────────────────
+// For each edit: draw a white rectangle over the original text, then draw new text.
+// Coordinates are in PDF space (from pdfjs getTextContent), no scale needed.
+export const burnTextEdits = async (pdfDoc, textEdits) => {
+  if (!textEdits || textEdits.length === 0) return pdfDoc;
+
+  const fontMap = {
+    helvetica: await pdfDoc.embedFont(StandardFonts.Helvetica),
+    times: await pdfDoc.embedFont(StandardFonts.TimesRoman),
+    courier: await pdfDoc.embedFont(StandardFonts.Courier),
+  };
+
+  const pickFont = (fontName) => {
+    const lower = (fontName || '').toLowerCase();
+    if (lower.includes('times') || lower.includes('serif')) return fontMap.times;
+    if (lower.includes('courier') || lower.includes('mono')) return fontMap.courier;
+    return fontMap.helvetica;
+  };
+
+  const pages = pdfDoc.getPages();
+
+  for (const edit of textEdits) {
+    const pageIndex = edit.page - 1;
+    if (pageIndex < 0 || pageIndex >= pages.length) continue;
+
+    const page = pages[pageIndex];
+    const font = pickFont(edit.fontName);
+    const fontSize = edit.fontSize;
+    const padding = fontSize * 0.15;
+
+    // 1. White rectangle to cover original text
+    page.drawRectangle({
+      x: edit.pdfX - padding,
+      y: edit.pdfY - fontSize * 0.3,
+      width: edit.pdfWidth + padding * 2,
+      height: fontSize * 1.3,
+      color: pdfRgb(1, 1, 1),
+      opacity: 1,
+    });
+
+    // 2. Draw new text at same baseline position
+    page.drawText(edit.newText, {
+      x: edit.pdfX,
+      y: edit.pdfY,
+      size: fontSize,
+      font,
+      color: pdfRgb(0, 0, 0),
+    });
+  }
+
+  return pdfDoc;
+};
+
 // ─── Burn text boxes into the PDF ─────────────────────────────────────────────
 // textBoxes: [{ page (1-based), x, y, text, fontSize, color, fontFamily, bold, italic }]
 // scale: the canvas scale that was used when positioning the text boxes

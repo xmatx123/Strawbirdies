@@ -35,6 +35,7 @@ let imageCounter = 0;
 let redactionCounter = 0;
 let stickyNoteCounter = 0;
 let stampCounter = 0;
+let textEditCounter = 0;
 
 const Editor = () => {
   const navigate = useNavigate();
@@ -83,6 +84,7 @@ const Editor = () => {
   const [redactions, setRedactions] = useState([]);
   const [stickyNotes, setStickyNotes] = useState([]);
   const [stamps, setStamps] = useState([]);
+  const [textEdits, setTextEdits] = useState([]);
 
   // Page numbers & header/footer settings (applied at download, rendered as overlays)
   const [pageNumberSettings, setPageNumberSettings] = useState(null);
@@ -248,6 +250,9 @@ const Editor = () => {
     try {
       const currentScale = zoom * 1.2;
       let doc = pdfDoc;
+      if (textEdits.length > 0) {
+        doc = await pdfUtils.burnTextEdits(doc, textEdits);
+      }
       if (textBoxes.length > 0) {
         doc = await pdfUtils.burnTextBoxes(doc, textBoxes, currentScale);
       }
@@ -415,6 +420,19 @@ const Editor = () => {
     setStamps((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
   };
   const handleDeleteStamp = (id) => setStamps((prev) => prev.filter((s) => s.id !== id));
+
+  // ─── Text Edits (edit existing PDF text) ──────────────────────────────
+  const handleAddTextEdit = (te) => {
+    textEditCounter += 1;
+    setTextEdits((prev) => [...prev, { ...te, id: `te-${textEditCounter}-${Date.now()}` }]);
+    setHasChanges(true);
+  };
+  const handleUpdateTextEdit = (updated) => {
+    setTextEdits((prev) => prev.map((te) => (te.id === updated.id ? updated : te)));
+  };
+  const handleDeleteTextEdit = (id) => {
+    setTextEdits((prev) => prev.filter((te) => te.id !== id));
+  };
 
   // ─── Image insertion handler ────────────────────────────────────────────
   const handleInsertImage = () => {
@@ -659,6 +677,10 @@ const Editor = () => {
             onDeleteStamp={handleDeleteStamp}
             pageNumberSettings={pageNumberSettings}
             headerFooterSettings={headerFooterSettings}
+            textEdits={textEdits}
+            onAddTextEdit={handleAddTextEdit}
+            onUpdateTextEdit={handleUpdateTextEdit}
+            onDeleteTextEdit={handleDeleteTextEdit}
           />
         </main>
 

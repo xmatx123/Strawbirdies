@@ -61,6 +61,10 @@ const PageEditorView = ({
   onDeleteStamp,
   pageNumberSettings = null,
   headerFooterSettings = null,
+  textEdits = [],
+  onAddTextEdit,
+  onUpdateTextEdit,
+  onDeleteTextEdit,
 }) => {
   const canvasRef = useRef(null);
   const overlayRef = useRef(null);
@@ -68,6 +72,11 @@ const PageEditorView = ({
   const renderTaskRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+
+  // Text editing state
+  const [textItems, setTextItems] = useState([]);
+  const [editingTextItem, setEditingTextItem] = useState(null);
+  const editInputRef = useRef(null);
 
   // Drawing state (for freehand / shapes / highlight / redaction drawing-in-progress)
   const [isDrawing, setIsDrawing] = useState(false);
@@ -119,6 +128,76 @@ const PageEditorView = ({
       }
     };
   }, [pdfjsDoc, activePage, scale]);
+
+  // Fetch text content when Edit Text tool is active
+  useEffect(() => {
+    if (activeTool !== 'editText' || !pdfjsDoc || !activePage) {
+      setTextItems([]);
+      setEditingTextItem(null);
+      return;
+    }
+    let cancelled = false;
+    pdfjsDoc.getPage(activePage).then(page => {
+      return page.getTextContent();
+    }).then(content => {
+      if (!cancelled) {
+        // Filter out empty items and rotated text
+        setTextItems(content.items.filter(item =>
+          item.str && item.str.trim() &&
+          Math.abs(item.transform[1]) < 0.01 && Math.abs(item.transform[2]) < 0.01
+        ));
+      }
+    }).catch(err => {
+      if (!cancelled) console.error('Error fetching text content:', err);
+    });
+    return () => { cancelled = true; };
+  }, [activeTool, pdfjsDoc, activePage]);
+
+  // Commit a text edit
+  const handleCommitTextEdit = useCallback(() => {
+    if (!editingTextItem) return;
+    const { item, existingEdit, text, pdfX, pdfY, pdfWidth, pdfHeight, fontSize, fontName } = editingTextItem;
+
+    if (text === item.str) {
+      // No change or reverted — remove edit if it existed
+      if (existingEdit) {
+        onDeleteTextEdit?.(existingEdit.id);
+      }
+    } else if (text.trim()) {
+      if (existingEdit) {
+        onUpdateTextEdit?.({ ...existingEdit, newText: text });
+      } else {
+        onAddTextEdit?.({
+          page: activePage,
+          pdfX, pdfY, pdfWidth, pdfHeight,
+          origText: item.str,
+          newText: text,
+          fontSize,
+          fontName,
+        });
+      }
+    }
+    setEditingTextItem(null);
+  }, [editingTextItem, activePage, onAddTextEdit, onUpdateTextEdit, onDeleteTextEdit]);
+
+  // Handle clicking a text item
+  const handleTextItemClick = useCallback((item, existingEdit) => {
+    // Commit any currently editing item first
+    if (editingTextItem) handleCommitTextEdit();
+
+    const fontSize = Math.abs(item.transform[0]) || Math.abs(item.transform[3]);
+    setEditingTextItem({
+      item,
+      existingEdit,
+      pdfX: item.transform[4],
+      pdfY: item.transform[5],
+      pdfWidth: item.width,
+      pdfHeight: fontSize,
+      fontSize,
+      fontName: item.fontName,
+      text: existingEdit ? existingEdit.newText : item.str,
+    });
+  }, [editingTextItem, handleCommitTextEdit]);
 
   // Get coordinates relative to the canvas
   const getCanvasCoords = useCallback((e) => {
@@ -280,6 +359,7 @@ const PageEditorView = ({
   const currentImages = placedImages.filter((img) => img.page === activePage);
   const currentStickyNotes = stickyNotes.filter((n) => n.page === activePage);
   const currentStamps = stamps.filter((s) => s.page === activePage);
+  const currentTextEdits = textEdits.filter((te) => te.page === activePage);
   const showSignature = signature && signature.page === activePage;
 
   // Determine cursor based on active tool
@@ -289,6 +369,7 @@ const PageEditorView = ({
     if (activeTool === 'highlight') return 'crosshair';
     if (activeTool === 'redact') return 'crosshair';
     if (activeTool === 'draw') return 'crosshair';
+    if (activeTool === 'editText') return 'text';
     return 'default';
   };
 
@@ -525,6 +606,105 @@ const PageEditorView = ({
             colors={COLORS}
           />
         ))}
+
+        {/* Text edit previews (white bg + new text, always visible) */}
+        {currentTextEdits.map((edit) => {
+          const x = edit.pdfX * scale;
+          const h = edit.fontSize * scale;
+          const y = canvasSize.height - (edit.pdfY * scale) - h;
+          const w = edit.pdfWidth * scale;
+          return (
+            <div
+              key={edit.id}
+              className="text-edit-preview"
+              style={{
+                position: 'absolute',
+                left: x,
+                top: y,
+                minWidth: w,
+                height: h,
+                fontSize: h * 0.85,
+                lineHeight: `${h}px`,
+                zIndex: 5,
+              }}
+            >
+              {edit.newText}
+              <button
+                className="overlay-delete-btn"
+                onClick={(e) => { e.stopPropagation(); onDeleteTextEdit?.(edit.id); }}
+                title="Undo text edit"
+              >✕</button>
+            </div>
+          );
+        })}
+
+        {/* Clickable text layer (only when Edit Text tool is active) */}
+        {activeTool === 'editText' && textItems.map((item, idx) => {
+          const fontSize = Math.abs(item.transform[0]) || Math.abs(item.transform[3]);
+          const x = item.transform[4] * scale;
+          const h = fontSize * scale;
+          const y = canvasSize.height - (item.transform[5] * scale) - h;
+          const w = (item.width || 0) * scale;
+
+          // Check if this item already has an edit
+          const existingEdit = currentTextEdits.find(e =>
+            Math.abs(e.pdfX - item.transform[4]) < 0.5 && Math.abs(e.pdfY - item.transform[5]) < 0.5
+          );
+
+          return (
+            <div
+              key={`tl-${idx}`}
+              className={`text-layer-item${existingEdit ? ' edited' : ''}`}
+              style={{
+                position: 'absolute',
+                left: x,
+                top: y,
+                width: Math.max(w, 10),
+                height: h,
+                zIndex: 10,
+              }}
+              onClick={() => handleTextItemClick(item, existingEdit)}
+            />
+          );
+        })}
+
+        {/* Inline text editor */}
+        {editingTextItem && (() => {
+          const h = editingTextItem.fontSize * scale;
+          const x = editingTextItem.pdfX * scale;
+          const y = canvasSize.height - (editingTextItem.pdfY * scale) - h;
+          const w = (editingTextItem.pdfWidth || 0) * scale;
+          return (
+            <div
+              className="text-edit-inline"
+              style={{
+                position: 'absolute',
+                left: x,
+                top: y,
+                zIndex: 30,
+              }}
+            >
+              <input
+                ref={editInputRef}
+                autoFocus
+                value={editingTextItem.text}
+                onChange={(e) => setEditingTextItem(prev => ({ ...prev, text: e.target.value }))}
+                onBlur={handleCommitTextEdit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCommitTextEdit();
+                  if (e.key === 'Escape') setEditingTextItem(null);
+                }}
+                style={{
+                  fontSize: h * 0.85,
+                  lineHeight: `${h}px`,
+                  height: h + 4,
+                  minWidth: Math.max(w, 60),
+                  fontFamily: 'sans-serif',
+                }}
+              />
+            </div>
+          );
+        })()}
 
         {/* Page number overlay (visual preview) */}
         {pageNumberSettings && canvasSize.width > 0 && (() => {

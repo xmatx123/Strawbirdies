@@ -50,6 +50,13 @@ const Toolbar = ({
           >
             T Text
           </button>
+          <button
+            className={activeTool === 'editText' ? 'primary' : ''}
+            onClick={() => onToolChange?.('editText')}
+            title="Click existing text to edit it"
+          >
+            ✎ Edit
+          </button>
 
           <div style={{ position: 'relative', display: 'inline-flex' }}>
             <button
