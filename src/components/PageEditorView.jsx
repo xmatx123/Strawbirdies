@@ -363,7 +363,7 @@ const PageEditorView = ({
               x={r.x} y={r.y}
               width={r.width} height={r.height}
               fill="#000000"
-              opacity={0.85}
+              opacity={1}
               style={{ pointerEvents: 'all', cursor: 'pointer' }}
               onClick={() => onDeleteRedaction && onDeleteRedaction(r.id)}
             />
@@ -411,7 +411,7 @@ const PageEditorView = ({
             <rect x={previewRect.x} y={previewRect.y} width={previewRect.width} height={previewRect.height} fill={highlightColor} opacity={0.35} />
           )}
           {isDrawing && previewRect && (activeTool === 'redact') && (
-            <rect x={previewRect.x} y={previewRect.y} width={previewRect.width} height={previewRect.height} fill="#000000" opacity={0.6} />
+            <rect x={previewRect.x} y={previewRect.y} width={previewRect.width} height={previewRect.height} fill="#000000" opacity={0.85} />
           )}
           {isDrawing && activeTool === 'draw' && drawingTool === 'freehand' && currentPoints.length >= 2 && (
             <path d={currentPoints.reduce((acc, p, idx) => idx === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`, '')} stroke={activeColor} strokeWidth={activeLineWidth} fill="none" strokeLinecap="round" />
