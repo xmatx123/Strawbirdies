@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const HeaderFooterModal = ({ isOpen, onClose, onApply }) => {
+const HeaderFooterModal = ({ isOpen, onClose, onApply, onRemove, currentSettings }) => {
   const [headerText, setHeaderText] = useState('');
   const [footerText, setFooterText] = useState('');
   const [fontSize, setFontSize] = useState(9);
 
+  // Populate from current settings when opening
+  useEffect(() => {
+    if (isOpen && currentSettings) {
+      setHeaderText(currentSettings.header || '');
+      setFooterText(currentSettings.footer || '');
+      setFontSize(currentSettings.fontSize || 9);
+    }
+  }, [isOpen, currentSettings]);
+
   if (!isOpen) return null;
+
+  const hasHeader = currentSettings?.header;
+  const hasFooter = currentSettings?.footer;
+  const activeLabel = [hasHeader && 'Header', hasFooter && 'Footer'].filter(Boolean).join(' & ');
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -15,6 +28,12 @@ const HeaderFooterModal = ({ isOpen, onClose, onApply }) => {
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
+          {currentSettings && (
+            <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6, padding: '8px 12px', marginBottom: '0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>{activeLabel} active</span>
+              <button onClick={onRemove} className="danger" style={{ fontSize: '0.75rem', padding: '2px 8px', minWidth: 'auto' }}>Remove</button>
+            </div>
+          )}
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
             Use <code>{'{page}'}</code> for page number and <code>{'{total}'}</code> for total pages.
           </p>
@@ -34,7 +53,7 @@ const HeaderFooterModal = ({ isOpen, onClose, onApply }) => {
         <div className="modal-footer">
           <button onClick={onClose}>Cancel</button>
           <button className="primary" onClick={() => onApply(headerText, footerText, { fontSize })} disabled={!headerText && !footerText}>
-            Apply
+            {currentSettings ? 'Update' : 'Apply'}
           </button>
         </div>
       </div>

@@ -59,6 +59,8 @@ const PageEditorView = ({
   stamps = [],
   onUpdateStamp,
   onDeleteStamp,
+  pageNumberSettings = null,
+  headerFooterSettings = null,
 }) => {
   const canvasRef = useRef(null);
   const overlayRef = useRef(null);
@@ -523,6 +525,58 @@ const PageEditorView = ({
             colors={COLORS}
           />
         ))}
+
+        {/* Page number overlay (visual preview) */}
+        {pageNumberSettings && canvasSize.width > 0 && (() => {
+          const s = pageNumberSettings;
+          const num = s.startNumber ? (s.startNumber + activePage - 1) : activePage;
+          let text;
+          if (s.format === 'dash') text = `- ${num} -`;
+          else if (s.format === 'page-of') text = `Page ${num} of ${pageCount}`;
+          else text = `${num}`;
+
+          const fs = (s.fontSize || 10) * (canvasSize.width / 612); // scale relative to letter width
+          const pos = s.position || 'bottom-center';
+          const style = {
+            position: 'absolute',
+            fontSize: fs,
+            color: 'rgba(77,77,77,0.85)',
+            fontFamily: 'Helvetica, Arial, sans-serif',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+          };
+          if (pos.includes('bottom')) style.bottom = fs * 1.5;
+          else style.top = fs * 0.8;
+          if (pos.includes('left')) style.left = fs * 3;
+          else if (pos.includes('right')) style.right = fs * 3;
+          else { style.left = '50%'; style.transform = 'translateX(-50%)'; }
+
+          return <div style={style}>{text}</div>;
+        })()}
+
+        {/* Header/footer overlay (visual preview) */}
+        {headerFooterSettings && canvasSize.width > 0 && (() => {
+          const s = headerFooterSettings;
+          const fs = (s.fontSize || 9) * (canvasSize.width / 612);
+          const baseStyle = {
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: fs,
+            color: 'rgba(102,102,102,0.85)',
+            fontFamily: 'Helvetica, Arial, sans-serif',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+          };
+          const headerText = (s.header || '').replace('{page}', activePage).replace('{total}', pageCount);
+          const footerText = (s.footer || '').replace('{page}', activePage).replace('{total}', pageCount);
+          return (
+            <>
+              {headerText && <div style={{ ...baseStyle, top: fs * 0.8 }}>{headerText}</div>}
+              {footerText && <div style={{ ...baseStyle, bottom: fs * 0.6 }}>{footerText}</div>}
+            </>
+          );
+        })()}
       </div>
     </div>
   );

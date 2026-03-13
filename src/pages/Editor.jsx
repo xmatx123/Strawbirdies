@@ -84,6 +84,10 @@ const Editor = () => {
   const [stickyNotes, setStickyNotes] = useState([]);
   const [stamps, setStamps] = useState([]);
 
+  // Page numbers & header/footer settings (applied at download, rendered as overlays)
+  const [pageNumberSettings, setPageNumberSettings] = useState(null);
+  const [headerFooterSettings, setHeaderFooterSettings] = useState(null);
+
   // Active tool
   const [activeTool, setActiveTool] = useState('select');
   const [drawingTool, setDrawingTool] = useState('freehand');
@@ -268,6 +272,12 @@ const Editor = () => {
       if (stamps.length > 0) {
         doc = await pdfUtils.burnStamps(doc, stamps, currentScale);
       }
+      if (pageNumberSettings) {
+        doc = await pdfUtils.addPageNumbers(doc, pageNumberSettings);
+      }
+      if (headerFooterSettings) {
+        doc = await pdfUtils.addHeaderFooter(doc, headerFooterSettings.header, headerFooterSettings.footer, { fontSize: headerFooterSettings.fontSize });
+      }
 
       const fileName = sessionStorage.getItem('pdfFileName') || 'document.pdf';
       await pdfUtils.downloadPDF(doc, fileName.replace('.pdf', '_edited.pdf'));
@@ -445,24 +455,26 @@ const Editor = () => {
     await refreshPdfUrl(doc);
   };
 
-  // ─── Page Numbers ───────────────────────────────────────────────────────
-  const handleApplyPageNumbers = async (options) => {
-    if (!pdfDoc) return;
-    const doc = await pdfUtils.addPageNumbers(pdfDoc, options);
-    setPdfDoc(doc);
+  // ─── Page Numbers (stored as settings, burned on download) ─────────────
+  const handleApplyPageNumbers = (options) => {
+    setPageNumberSettings(options);
     setHasChanges(true);
     setShowPageNumberModal(false);
-    await refreshPdfUrl(doc);
+  };
+  const handleRemovePageNumbers = () => {
+    setPageNumberSettings(null);
+    setShowPageNumberModal(false);
   };
 
-  // ─── Headers & Footers ──────────────────────────────────────────────────
-  const handleApplyHeaderFooter = async (header, footer, options) => {
-    if (!pdfDoc) return;
-    const doc = await pdfUtils.addHeaderFooter(pdfDoc, header, footer, options);
-    setPdfDoc(doc);
+  // ─── Headers & Footers (stored as settings, burned on download) ───────
+  const handleApplyHeaderFooter = (header, footer, options) => {
+    setHeaderFooterSettings({ header, footer, ...options });
     setHasChanges(true);
     setShowHeaderFooterModal(false);
-    await refreshPdfUrl(doc);
+  };
+  const handleRemoveHeaderFooter = () => {
+    setHeaderFooterSettings(null);
+    setShowHeaderFooterModal(false);
   };
 
   // ─── Metadata removal ──────────────────────────────────────────────────
@@ -645,6 +657,8 @@ const Editor = () => {
             stamps={stamps}
             onUpdateStamp={handleUpdateStamp}
             onDeleteStamp={handleDeleteStamp}
+            pageNumberSettings={pageNumberSettings}
+            headerFooterSettings={headerFooterSettings}
           />
         </main>
 
@@ -685,8 +699,8 @@ const Editor = () => {
       <PasswordModal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} onProtect={handleProtect} />
       <ShareModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} getPdfBlob={getPdfBlob} fileName={sessionStorage.getItem('pdfFileName') || 'document.pdf'} />
       <WatermarkModal isOpen={showWatermarkModal} onClose={() => setShowWatermarkModal(false)} onApply={handleApplyWatermark} />
-      <PageNumberModal isOpen={showPageNumberModal} onClose={() => setShowPageNumberModal(false)} onApply={handleApplyPageNumbers} />
-      <HeaderFooterModal isOpen={showHeaderFooterModal} onClose={() => setShowHeaderFooterModal(false)} onApply={handleApplyHeaderFooter} />
+      <PageNumberModal isOpen={showPageNumberModal} onClose={() => setShowPageNumberModal(false)} onApply={handleApplyPageNumbers} onRemove={handleRemovePageNumbers} currentSettings={pageNumberSettings} />
+      <HeaderFooterModal isOpen={showHeaderFooterModal} onClose={() => setShowHeaderFooterModal(false)} onApply={handleApplyHeaderFooter} onRemove={handleRemoveHeaderFooter} currentSettings={headerFooterSettings} />
       <ExportModal isOpen={showExportModal} onClose={() => setShowExportModal(false)} pdfjsDoc={pdfjsDoc} pageCount={pageCount} />
       <StampModal isOpen={showStampModal} onClose={() => setShowStampModal(false)} onApply={handleAddStamp} />
       <OCRModal isOpen={showOCRModal} onClose={() => setShowOCRModal(false)} pdfjsDoc={pdfjsDoc} pageCount={pageCount} />
