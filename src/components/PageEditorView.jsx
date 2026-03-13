@@ -75,6 +75,7 @@ const PageEditorView = ({
 
   // Text editing state
   const [textItems, setTextItems] = useState([]);
+  const [textStyles, setTextStyles] = useState({}); // fontName → { fontFamily, ascent, descent }
   const [editingTextItem, setEditingTextItem] = useState(null);
   const editInputRef = useRef(null);
 
@@ -133,6 +134,7 @@ const PageEditorView = ({
   useEffect(() => {
     if (activeTool !== 'editText' || !pdfjsDoc || !activePage) {
       setTextItems([]);
+      setTextStyles({});
       setEditingTextItem(null);
       return;
     }
@@ -141,6 +143,8 @@ const PageEditorView = ({
       return page.getTextContent();
     }).then(content => {
       if (!cancelled) {
+        // Store the font styles map (fontName → { fontFamily, ascent, descent })
+        setTextStyles(content.styles || {});
         // Filter out empty items and rotated text
         setTextItems(content.items.filter(item =>
           item.str && item.str.trim() &&
@@ -156,7 +160,7 @@ const PageEditorView = ({
   // Commit a text edit
   const handleCommitTextEdit = useCallback(() => {
     if (!editingTextItem) return;
-    const { item, existingEdit, text, pdfX, pdfY, pdfWidth, pdfHeight, fontSize, fontName } = editingTextItem;
+    const { item, existingEdit, text, pdfX, pdfY, pdfWidth, pdfHeight, fontSize, fontName, fontFamily } = editingTextItem;
 
     if (text === item.str) {
       // No change or reverted — remove edit if it existed
@@ -174,6 +178,7 @@ const PageEditorView = ({
           newText: text,
           fontSize,
           fontName,
+          fontFamily, // CSS font family from PDF.js styles
         });
       }
     }
@@ -186,6 +191,9 @@ const PageEditorView = ({
     if (editingTextItem) handleCommitTextEdit();
 
     const fontSize = Math.abs(item.transform[0]) || Math.abs(item.transform[3]);
+    // Get the CSS fontFamily from PDF.js styles map
+    const styleInfo = textStyles[item.fontName];
+    const fontFamily = existingEdit?.fontFamily || styleInfo?.fontFamily || 'sans-serif';
     setEditingTextItem({
       item,
       existingEdit,
@@ -195,9 +203,10 @@ const PageEditorView = ({
       pdfHeight: fontSize,
       fontSize,
       fontName: item.fontName,
+      fontFamily,
       text: existingEdit ? existingEdit.newText : item.str,
     });
-  }, [editingTextItem, handleCommitTextEdit]);
+  }, [editingTextItem, handleCommitTextEdit, textStyles]);
 
   // Get coordinates relative to the canvas
   const getCanvasCoords = useCallback((e) => {
@@ -607,12 +616,13 @@ const PageEditorView = ({
           />
         ))}
 
-        {/* Text edit previews (white bg + new text, always visible) */}
+        {/* Text edit previews (seamless — matches original text appearance) */}
         {currentTextEdits.map((edit) => {
           const x = edit.pdfX * scale;
           const h = edit.fontSize * scale;
           const y = canvasSize.height - (edit.pdfY * scale) - h;
           const w = edit.pdfWidth * scale;
+          const ff = edit.fontFamily || 'sans-serif';
           return (
             <div
               key={edit.id}
@@ -622,9 +632,10 @@ const PageEditorView = ({
                 left: x,
                 top: y,
                 minWidth: w,
-                height: h,
-                fontSize: h * 0.85,
-                lineHeight: `${h}px`,
+                height: h * 1.15,
+                fontSize: h * 0.88,
+                lineHeight: `${h * 1.15}px`,
+                fontFamily: ff,
                 zIndex: 5,
               }}
             >
@@ -674,6 +685,7 @@ const PageEditorView = ({
           const x = editingTextItem.pdfX * scale;
           const y = canvasSize.height - (editingTextItem.pdfY * scale) - h;
           const w = (editingTextItem.pdfWidth || 0) * scale;
+          const ff = editingTextItem.fontFamily || 'sans-serif';
           return (
             <div
               className="text-edit-inline"
@@ -695,11 +707,11 @@ const PageEditorView = ({
                   if (e.key === 'Escape') setEditingTextItem(null);
                 }}
                 style={{
-                  fontSize: h * 0.85,
+                  fontSize: h * 0.88,
                   lineHeight: `${h}px`,
                   height: h + 4,
                   minWidth: Math.max(w, 60),
-                  fontFamily: 'sans-serif',
+                  fontFamily: ff,
                 }}
               />
             </div>

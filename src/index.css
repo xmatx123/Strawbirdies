@@ -1775,28 +1775,25 @@ button.small {
 /* Inline text editor */
 .text-edit-inline input {
   outline: none;
-  border: 2px solid var(--accent);
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
-  padding: 0 3px;
-  color: #1e40af;
-  font-family: sans-serif;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+  padding: 0 1px;
+  color: #000;
 }
 .text-edit-inline input:focus {
-  border-color: var(--primary);
+  border-color: rgba(59, 130, 246, 0.7);
 }
 
-/* Preview of edited text on canvas */
+/* Preview of edited text on canvas — seamless, matches original */
 .text-edit-preview {
   background: white;
-  color: #1e40af;
-  font-family: sans-serif;
+  color: #000;
   white-space: nowrap;
   overflow: visible;
   pointer-events: none;
-  border-bottom: 2px solid rgba(30, 64, 175, 0.35);
-  padding: 0 1px;
+  padding: 0;
 }
 .text-edit-preview .overlay-delete-btn {
   pointer-events: all;

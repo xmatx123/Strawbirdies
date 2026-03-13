@@ -131,17 +131,40 @@ const hexToRgb = (hex) => {
 export const burnTextEdits = async (pdfDoc, textEdits) => {
   if (!textEdits || textEdits.length === 0) return pdfDoc;
 
+  // Embed all standard font variants for best matching
   const fontMap = {
     helvetica: await pdfDoc.embedFont(StandardFonts.Helvetica),
+    helveticaBold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
     times: await pdfDoc.embedFont(StandardFonts.TimesRoman),
+    timesBold: await pdfDoc.embedFont(StandardFonts.TimesRomanBold),
     courier: await pdfDoc.embedFont(StandardFonts.Courier),
+    courierBold: await pdfDoc.embedFont(StandardFonts.CourierBold),
   };
 
-  const pickFont = (fontName) => {
-    const lower = (fontName || '').toLowerCase();
-    if (lower.includes('times') || lower.includes('serif')) return fontMap.times;
-    if (lower.includes('courier') || lower.includes('mono')) return fontMap.courier;
-    return fontMap.helvetica;
+  // Match using both the PDF internal fontName and the CSS fontFamily from PDF.js
+  const pickFont = (fontName, fontFamily) => {
+    const fn = (fontName || '').toLowerCase();
+    const ff = (fontFamily || '').toLowerCase();
+    const combined = fn + ' ' + ff;
+
+    // Check for bold
+    const isBold = combined.includes('bold') || combined.includes('heavy') || combined.includes('black');
+
+    // Courier / monospace
+    if (combined.includes('courier') || combined.includes('mono') || combined.includes('consola')) {
+      return isBold ? fontMap.courierBold : fontMap.courier;
+    }
+    // Times / serif / Georgia / Palatino / Garamond
+    if (combined.includes('times') || combined.includes('georgia') || combined.includes('palatino') ||
+        combined.includes('garamond') || combined.includes('cambria') || combined.includes('book')) {
+      return isBold ? fontMap.timesBold : fontMap.times;
+    }
+    // Check for generic serif (but not sans-serif)
+    if (ff.includes('serif') && !ff.includes('sans')) {
+      return isBold ? fontMap.timesBold : fontMap.times;
+    }
+    // Default: Helvetica (matches Arial, Verdana, Calibri, sans-serif, etc.)
+    return isBold ? fontMap.helveticaBold : fontMap.helvetica;
   };
 
   const pages = pdfDoc.getPages();
@@ -151,15 +174,19 @@ export const burnTextEdits = async (pdfDoc, textEdits) => {
     if (pageIndex < 0 || pageIndex >= pages.length) continue;
 
     const page = pages[pageIndex];
-    const font = pickFont(edit.fontName);
+    const font = pickFont(edit.fontName, edit.fontFamily);
     const fontSize = edit.fontSize;
     const padding = fontSize * 0.15;
+
+    // Calculate new text width so the white rect covers whichever is wider
+    const newTextWidth = font.widthOfTextAtSize(edit.newText, fontSize);
+    const coverWidth = Math.max(edit.pdfWidth, newTextWidth) + padding * 2;
 
     // 1. White rectangle to cover original text
     page.drawRectangle({
       x: edit.pdfX - padding,
       y: edit.pdfY - fontSize * 0.3,
-      width: edit.pdfWidth + padding * 2,
+      width: coverWidth,
       height: fontSize * 1.3,
       color: pdfRgb(1, 1, 1),
       opacity: 1,
