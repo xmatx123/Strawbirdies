@@ -21,6 +21,47 @@ import OCRModal from '../components/OCRModal';
 import BookmarksPanel from '../components/BookmarksPanel';
 import AIPanel from '../components/AIPanel';
 import * as pdfUtils from '../lib/pdfUtils';
+import './Editor.css';
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   STRAWBERRY BIRD LOGO (same as Home.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+const StrawberryBird = ({ size = 32, className = '' }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 32 32"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+  >
+    {/* Body - strawberry shape */}
+    <ellipse cx="16" cy="19" rx="10" ry="11" fill="var(--primary)"/>
+    <ellipse cx="16" cy="16" rx="11" ry="9" fill="var(--primary)"/>
+    {/* Seed dots */}
+    <circle cx="12" cy="21" r="1" fill="var(--primary-hover)"/>
+    <circle cx="16" cy="23" r="1" fill="var(--primary-hover)"/>
+    <circle cx="20" cy="21" r="1" fill="var(--primary-hover)"/>
+    <circle cx="14" cy="18" r="0.8" fill="var(--primary-hover)"/>
+    <circle cx="18" cy="18" r="0.8" fill="var(--primary-hover)"/>
+    {/* Wings */}
+    <ellipse cx="6" cy="16" rx="4" ry="3" fill="#FF8C69" transform="rotate(-15 6 16)"/>
+    <ellipse cx="26" cy="16" rx="4" ry="3" fill="#FF8C69" transform="rotate(15 26 16)"/>
+    {/* Leaf/stem */}
+    <path d="M13 7 Q16 2 19 7" stroke="var(--accent)" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    <line x1="16" y1="7" x2="16" y2="10" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round"/>
+    {/* Eyes */}
+    <ellipse cx="13" cy="14" rx="2.2" ry="2.2" fill="white"/>
+    <ellipse cx="19" cy="14" rx="2.2" ry="2.2" fill="white"/>
+    <circle cx="13.5" cy="14" r="1.1" fill="var(--text-primary)"/>
+    <circle cx="19.5" cy="14" r="1.1" fill="var(--text-primary)"/>
+    <circle cx="14" cy="13.5" r="0.4" fill="white"/>
+    <circle cx="20" cy="13.5" r="0.4" fill="white"/>
+    {/* Beak */}
+    <polygon points="22,16 26,17.5 22,19" fill="#FFD166"/>
+  </svg>
+);
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -521,22 +562,14 @@ const Editor = () => {
   // ─── Render ─────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="loading-screen">
+      <div className="loading-screen" role="status" aria-live="polite">
         <div className="brand-loader">
-          <svg width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="7" fill="#E8453C"/>
-            <ellipse cx="14" cy="21" rx="9" ry="8" fill="white"/>
-            <path d="M11 12 Q14 7 17 12" fill="#2D6A4F"/>
-            <line x1="14" y1="12" x2="14" y2="16" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round"/>
-            <circle cx="11.5" cy="20" r="1.5" fill="#1A0A08"/>
-            <circle cx="16.5" cy="20" r="1.5" fill="#1A0A08"/>
-            <polygon points="20,20 24,21.5 20,23" fill="#FF8C00"/>
-          </svg>
+          <StrawberryBird size={48} />
         </div>
-        <div className="dots-loader">
+        <div className="dots-loader" aria-hidden="true">
           <span/><span/><span/>
         </div>
-        <p style={{color: 'var(--text-secondary)', marginTop: '0.5rem'}}>Loading your PDF…</p>
+        <p>Loading your PDF...</p>
       </div>
     );
   }
@@ -545,19 +578,11 @@ const Editor = () => {
     <div className="editor-page">
       {/* ── Header ── */}
       <header className="editor-header">
-        <div className="editor-logo">
-          <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="7" fill="#E8453C"/>
-            <ellipse cx="14" cy="21" rx="9" ry="8" fill="white"/>
-            <path d="M11 12 Q14 7 17 12" fill="#2D6A4F"/>
-            <line x1="14" y1="12" x2="14" y2="16" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round"/>
-            <circle cx="11.5" cy="20" r="1.5" fill="#1A0A08"/>
-            <circle cx="16.5" cy="20" r="1.5" fill="#1A0A08"/>
-            <polygon points="20,20 24,21.5 20,23" fill="#FF8C00"/>
-          </svg>
+        <div className="editor-logo" onClick={handleNewPdf} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleNewPdf()}>
+          <StrawberryBird size={28} />
           <span className="editor-logo-text">Strawbirdies</span>
         </div>
-        <button onClick={handleNewPdf} className="back-btn" style={{fontSize: '0.8rem', padding: '0.3rem 0.75rem'}}>← New PDF</button>
+        <button onClick={handleNewPdf} className="back-btn" aria-label="Go back to home">← New PDF</button>
         <h1 className="editor-title">
           {sessionStorage.getItem('pdfFileName') || 'Document'}
         </h1>

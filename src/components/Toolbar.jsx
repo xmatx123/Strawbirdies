@@ -58,30 +58,32 @@ const Toolbar = ({
             ✎ Edit
           </button>
 
-          <div style={{ position: 'relative', display: 'inline-flex' }}>
+          <div className="toolbar-split-btn">
             <button
               className={activeTool === 'highlight' ? 'primary' : ''}
               onClick={() => onToolChange?.('highlight')}
               title="Highlight areas"
             >
-              <span style={{ background: highlightColor, padding: '0 4px', borderRadius: 2, marginRight: 4 }}>&nbsp;</span>
+              <span className="toolbar-color-indicator" style={{ background: highlightColor }}></span>
               Highlight
             </button>
             <button
               onClick={() => setShowHighlightDropdown(v => !v)}
               title="Change highlight color"
-              style={{ padding: '0.2rem 0.3rem', minWidth: 'auto', borderLeft: '1px solid rgba(0,0,0,0.1)' }}
+              aria-label="Change highlight color"
             >
               ▾
             </button>
             {showHighlightDropdown && (
               <div className="toolbar-dropdown" onMouseLeave={() => setShowHighlightDropdown(false)}>
-                <div style={{ display: 'flex', gap: 4, padding: 4 }}>
+                <div className="toolbar-color-picker">
                   {HIGHLIGHT_COLORS.map(c => (
                     <button
                       key={c}
-                      style={{ background: c, width: 24, height: 24, border: highlightColor === c ? '2px solid #333' : '1px solid #ccc', borderRadius: 4, cursor: 'pointer', padding: 0, minWidth: 'auto' }}
+                      className={`toolbar-color-btn ${highlightColor === c ? 'active' : ''}`}
+                      style={{ background: c }}
                       onClick={() => { onHighlightColorChange?.(c); setShowHighlightDropdown(false); }}
+                      aria-label={`Select ${c} highlight color`}
                     />
                   ))}
                 </div>
@@ -89,7 +91,7 @@ const Toolbar = ({
             )}
           </div>
 
-          <div style={{ position: 'relative', display: 'inline-flex' }}>
+          <div className="toolbar-split-btn">
             <button
               className={activeTool === 'draw' ? 'primary' : ''}
               onClick={() => onToolChange?.('draw')}
@@ -100,7 +102,7 @@ const Toolbar = ({
             <button
               onClick={() => setShowDrawDropdown(v => !v)}
               title="Change drawing tool"
-              style={{ padding: '0.2rem 0.3rem', minWidth: 'auto', borderLeft: '1px solid rgba(0,0,0,0.1)' }}
+              aria-label="Change drawing tool"
             >
               ▾
             </button>
@@ -110,9 +112,9 @@ const Toolbar = ({
                   <button
                     key={t.id}
                     onClick={() => { onDrawingToolChange?.(t.id); setShowDrawDropdown(false); }}
-                    style={{ display: 'flex', gap: 6, alignItems: 'center', width: '100%', padding: '6px 10px', background: drawingTool === t.id ? 'var(--accent)' : 'transparent', color: drawingTool === t.id ? 'white' : 'inherit', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.8rem', minWidth: 'auto' }}
+                    className={drawingTool === t.id ? 'active' : ''}
                   >
-                    <span>{t.icon}</span> {t.label}
+                    <span aria-hidden="true">{t.icon}</span> {t.label}
                   </button>
                 ))}
               </div>
@@ -167,7 +169,7 @@ const Toolbar = ({
           <button onClick={onMerge} disabled={!pdfFile} title="Merge with another PDF">Merge</button>
           <button onClick={onSplit} disabled={!pdfFile || pageCount < 2} title="Split PDF">Split</button>
 
-          <div style={{ position: 'relative', display: 'inline-block' }}>
+          <div className="toolbar-split-btn">
             <button onClick={() => setShowMoreDropdown(v => !v)} disabled={!pdfFile} title="More document tools">
               More ▾
             </button>
@@ -176,11 +178,11 @@ const Toolbar = ({
                 <button onClick={() => { onWatermark?.(); setShowMoreDropdown(false); }}>💧 Watermark</button>
                 <button onClick={() => { onPageNumbers?.(); setShowMoreDropdown(false); }}>🔢 Page Numbers</button>
                 <button onClick={() => { onHeaderFooter?.(); setShowMoreDropdown(false); }}>📄 Header / Footer</button>
-                <hr style={{ margin: '4px 0', border: 'none', borderTop: '1px solid #eee' }} />
+                <hr />
                 <button onClick={() => { onCompress?.(); setShowMoreDropdown(false); }}>📦 Compress</button>
                 <button onClick={() => { onRemoveMetadata?.(); setShowMoreDropdown(false); }}>🧹 Remove Metadata</button>
                 <button onClick={() => { onProtect?.(); setShowMoreDropdown(false); }}>🔒 Password Protect</button>
-                <hr style={{ margin: '4px 0', border: 'none', borderTop: '1px solid #eee' }} />
+                <hr />
                 <button onClick={() => { onFindReplace?.(); setShowMoreDropdown(false); }}>🔍 Find Text</button>
                 <button onClick={() => { onOCR?.(); setShowMoreDropdown(false); }}>👁 OCR (Extract Text)</button>
                 <button onClick={() => { onBookmarks?.(); setShowMoreDropdown(false); }}>📑 Bookmarks</button>
