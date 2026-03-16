@@ -1,0 +1,36 @@
+# Strawbirdies — Free Online PDF Editor
+
+> Strawbirdies is a free, browser-based PDF editor. No downloads, no accounts, no fees. Edit PDFs directly in your web browser on any device.
+
+## What is Strawbirdies?
+
+Strawbirdies is a web application that lets anyone edit PDF documents for free. All processing happens in the browser — files are never uploaded to a server, ensuring complete privacy.
+
+## Features
+
+- **Edit existing text**: Click on any text in a PDF and modify it in place
+- **Add text**: Place new text anywhere on any page
+- **Signatures**: Draw or type signatures and place them on documents
+- **Highlight & annotate**: Highlight text areas in multiple colors, add sticky notes
+- **Redact**: Permanently black out sensitive content
+- **Merge PDFs**: Combine multiple PDF files into one
+- **Split PDFs**: Extract specific page ranges into a new document
+- **Draw**: Freehand drawing, rectangles, circles, lines, and arrows
+- **Insert images**: Add photos and graphics to any page
+- **Stamps**: Add preset stamps (APPROVED, DRAFT, CONFIDENTIAL, etc.)
+- **Watermarks**: Add text watermarks across all pages
+- **Page numbers**: Add customizable page numbering
+- **Headers & footers**: Add recurring text to page margins
+- **OCR**: Extract text from scanned PDFs using optical character recognition
+- **Compress**: Reduce PDF file size
+- **Export**: Save individual pages as images
+- **Page operations**: Rotate, delete, and reorder pages
+- **Remove metadata**: Strip document metadata for privacy
+
+## Key Facts
+
+- **Price**: Free (no premium tiers, no limits)
+- **Privacy**: All processing happens in-browser. No files are uploaded to servers.
+- **Requirements**: Any modern web browser (Chrome, Firefox, Safari, Edge)
+- **Account**: No sign-up or login required
+- **URL**: https://strawbirdies.com
