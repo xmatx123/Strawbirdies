@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /editor
+Disallow: /view/
+
+Sitemap: https://strawbirdies.com/sitemap.xml
