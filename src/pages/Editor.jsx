@@ -21,6 +21,7 @@ import OCRModal from '../components/OCRModal';
 import BookmarksPanel from '../components/BookmarksPanel';
 import AIPanel from '../components/AIPanel';
 import * as pdfUtils from '../lib/pdfUtils';
+import { analytics } from '../lib/analytics';
 import './Editor.css';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -132,7 +133,11 @@ const Editor = () => {
   const [headerFooterSettings, setHeaderFooterSettings] = useState(null);
 
   // Active tool
-  const [activeTool, setActiveTool] = useState('select');
+  const [activeTool, setActiveToolRaw] = useState('select');
+  const setActiveTool = useCallback((tool) => {
+    setActiveToolRaw(tool);
+    if (tool !== 'select') analytics.toolUsed(tool);
+  }, []);
   const [drawingTool, setDrawingTool] = useState('freehand');
   const [activeColor, setActiveColor] = useState('#000000');
   const [highlightColor, setHighlightColor] = useState('#fde047');
@@ -157,6 +162,7 @@ const Editor = () => {
         setPageCount(count);
         setRotations(initRotations);
         setActivePage(1);
+        analytics.pdfUploaded(sessionStorage.getItem('pdfFileName') || 'unknown');
       } catch (err) {
         console.error('Error loading PDF:', err);
         alert('Could not load PDF. Please try again.');
@@ -262,6 +268,7 @@ const Editor = () => {
       setHasChanges(true);
       setShowMergeModal(false);
       await refreshPdfUrl(merged);
+      analytics.featureUsed('merge');
     } catch (err) {
       console.error('Merge error:', err);
       alert('Error merging PDFs');
@@ -279,6 +286,7 @@ const Editor = () => {
       setHasChanges(true);
       setShowSplitModal(false);
       await refreshPdfUrl(split);
+      analytics.featureUsed('split');
     } catch (err) {
       console.error('Split error:', err);
       alert('Error splitting PDF');
@@ -327,6 +335,7 @@ const Editor = () => {
 
       const fileName = sessionStorage.getItem('pdfFileName') || 'document.pdf';
       await pdfUtils.downloadPDF(doc, fileName.replace('.pdf', '_edited.pdf'));
+      analytics.pdfDownloaded(fileName);
     } catch (err) {
       console.error('Download error:', err);
       alert('Error preparing PDF for download. Please try again.');
@@ -356,6 +365,7 @@ const Editor = () => {
     setSignature({ dataUrl, page: activePage, x: 100, y: 400, width: 200, height: 80 });
     setHasChanges(true);
     setShowSignatureModal(false);
+    analytics.featureUsed('signature');
   };
 
   // ─── Password protection ───────────────────────────────────────────────
